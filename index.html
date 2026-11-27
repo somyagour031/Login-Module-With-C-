@@ -1,0 +1,688 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AuthShield</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1B4332, #40916C);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #F1F5F2;
+            width: 370px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #173B32;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #198754;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 6px;
+            background: hsl(144, 95%, 7%);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #141e30;
+        }
+
+        .links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        a {
+            color: hsl(152, 69%, 15%);
+            text-decoration: none;  
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .captcha {
+            background: #e5e5e5;
+            padding: 12px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            font-style: italic;
+            margin-top: 10px;
+            user-select: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        .success {
+            color: #198754;
+        }
+
+        .back {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .switch a {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LOGIN PAGE -->
+
+    <div id="loginPage">
+
+        <h1>AuthShield</h1>
+
+        <form onsubmit="login(event)">
+
+            <input type="text" id="username"
+                   placeholder="Enter Username" required>
+
+            <input type="password" id="password"
+                   placeholder="Enter Password" required>
+
+            <div class="links">
+                <a onclick="togglePassword('password', this)">
+                    Show Password
+                </a>
+
+                <a onclick="showPage('forgotPage')">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <h4>CAPTCHA Verification</h4>
+
+            <div class="captcha" id="captcha"></div>
+
+            <button type="button" onclick="generateCaptcha()">
+                Refresh CAPTCHA
+            </button>
+
+            <input type="text" id="captchaInput"
+                   placeholder="Enter CAPTCHA" required>
+
+            <button type="submit">Login</button>
+
+        </form>
+
+        <p class="message" id="loginMessage"></p>
+
+        <div class="switch">
+            Don't have an account?
+            <a onclick="showPage('signupPage')">Sign Up</a>
+        </div>
+
+    </div>
+
+
+    <!-- SIGN UP PAGE -->
+
+    <div id="signupPage" class="hidden">
+
+        <h1>Create Account</h1>
+
+        <form onsubmit="register(event)">
+
+            <input type="text" id="newUsername"
+                   placeholder="Create Username" required>
+
+            <input type="password" id="newPassword"
+                   placeholder="Create Password"
+                   minlength="3" required>
+
+            <input type="password" id="confirmPassword"
+                   placeholder="Confirm Password"
+                   minlength="3" required>
+
+            <button type="submit">Create Account</button>
+
+        </form>
+
+        <p class="message" id="signupMessage"></p>
+
+        <div class="switch">
+            Already have an account?
+            <a onclick="showPage('loginPage')">Login</a>
+        </div>
+
+    </div>
+
+
+    <!-- OTP VERIFICATION PAGE -->
+
+    <div id="otpPage" class="hidden">
+
+        <h2>2-Step Verification</h2>
+
+        <p style="text-align:center">
+            Enter the OTP to complete your login.
+        </p>
+
+        <input type="text" id="otpInput"
+               placeholder="Enter 6-digit OTP"
+               maxlength="6">
+
+        <button onclick="verifyOTP()">Verify OTP</button>
+
+        <p class="message" id="otpMessage"></p>
+
+        <div class="back">
+            <a onclick="backToLogin()">Back to Login</a>
+        </div>
+
+    </div>
+
+
+    <!-- FORGOT PASSWORD PAGE -->
+
+    <div id="forgotPage" class="hidden">
+
+        <h2>Forgot Password</h2>
+
+        <p>Enter your registered username.</p>
+
+        <input type="text" id="forgotUsername"
+               placeholder="Enter Username">
+
+        <button onclick="resetPassword()">
+            Check Account
+        </button>
+
+        <p class="message" id="resetMessage"></p>
+
+        <div class="back">
+            <a onclick="backToLogin()">Back to Login</a>
+        </div>
+
+    </div>
+
+
+    <!-- SUCCESS PAGE -->
+
+    <div id="successPage" class="hidden">
+
+        <h2>Login Successful!</h2>
+
+        <p style="text-align:center">
+            Welcome to AuthShield!
+        </p>
+
+        <p style="text-align:center" id="welcomeUser"></p>
+
+        <button onclick="backToLogin()">Logout</button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // PREDEFINED USERS FROM YOUR C++ PROGRAM
+
+    const defaultUsers = {
+        "Somya": "123",
+        "Mayank": "234",
+        "Akshat": "456",
+        "Kratika": "789",
+        "Khushi": "000"
+    };
+
+
+    // LOAD REGISTERED USERS FROM LOCAL STORAGE
+
+    function getUsers() {
+
+        let savedUsers = JSON.parse(
+            localStorage.getItem("authShieldUsers") || "{}"
+        );
+
+        return {
+            ...defaultUsers,
+            ...savedUsers
+        };
+
+    }
+
+
+    // PAGE NAVIGATION
+
+    function showPage(pageId) {
+
+        let pages = [
+            "loginPage",
+            "signupPage",
+            "otpPage",
+            "forgotPage",
+            "successPage"
+        ];
+
+        pages.forEach(function(page) {
+
+            document.getElementById(page)
+                .classList.add("hidden");
+
+        });
+
+        document.getElementById(pageId)
+            .classList.remove("hidden");
+
+    }
+
+
+    // CAPTCHA GENERATION
+
+    let captchaCode = "";
+
+    function generateCaptcha() {
+
+        let characters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        captchaCode = "";
+
+        for (let i = 0; i < 6; i++) {
+
+            captchaCode += characters.charAt(
+                Math.floor(Math.random() * characters.length)
+            );
+
+        }
+
+        document.getElementById("captcha").innerText =
+            captchaCode;
+
+    }
+
+    generateCaptcha();
+
+
+    // SHOW / HIDE PASSWORD
+
+    function togglePassword(inputId, link) {
+
+        let password = document.getElementById(inputId);
+
+        if (password.type === "password") {
+
+            password.type = "text";
+            link.innerText = "Hide Password";
+
+        } else {
+
+            password.type = "password";
+            link.innerText = "Show Password";
+
+        }
+
+    }
+
+
+    // OTP GENERATION
+
+    let generatedOTP = "";
+    let currentUser = "";
+
+    function sendOTP(username) {
+
+        currentUser = username;
+
+        generatedOTP =
+            Math.floor(100000 + Math.random() * 900000).toString();
+
+        alert("Your Demo OTP is: " + generatedOTP);
+
+        document.getElementById("otpInput").value = "";
+        document.getElementById("otpMessage").innerText = "";
+
+        showPage("otpPage");
+
+    }
+
+
+    // LOGIN FUNCTION
+
+    function login(event) {
+
+        event.preventDefault();
+
+        let username =
+            document.getElementById("username").value.trim();
+
+        let password =
+            document.getElementById("password").value;
+
+        let enteredCaptcha =
+            document.getElementById("captchaInput").value.trim();
+
+        let loginMessage =
+            document.getElementById("loginMessage");
+
+
+        // CAPTCHA CHECK
+
+        if (enteredCaptcha !== captchaCode) {
+
+            loginMessage.innerText =
+                "Incorrect CAPTCHA! Try again.";
+
+            loginMessage.className = "message error";
+
+            generateCaptcha();
+
+            document.getElementById("captchaInput").value = "";
+
+            return;
+
+        }
+
+
+        // USERNAME AND PASSWORD CHECK
+
+        let users = getUsers();
+
+        if (users[username] === password) {
+
+            loginMessage.innerText = "";
+
+            sendOTP(username);
+
+        }
+
+        else {
+
+            loginMessage.innerText =
+                "Invalid Username or Password!";
+
+            loginMessage.className = "message error";
+
+            generateCaptcha();
+
+            document.getElementById("captchaInput").value = "";
+
+        }
+
+    }
+
+
+    // SIGN UP / CREATE ACCOUNT
+
+    function register(event) {
+
+        event.preventDefault();
+
+        let username =
+            document.getElementById("newUsername").value.trim();
+
+        let password =
+            document.getElementById("newPassword").value;
+
+        let confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+        let signupMessage =
+            document.getElementById("signupMessage");
+
+
+        // CHECK USERNAME LENGTH
+
+        if (username.length < 3) {
+
+            signupMessage.innerText =
+                "Username must contain at least 3 characters.";
+
+            signupMessage.className = "message error";
+
+            return;
+
+        }
+
+
+        // CHECK PASSWORD
+
+        if (password.length < 3) {
+
+            signupMessage.innerText =
+                "Password must contain at least 3 characters.";
+
+            signupMessage.className = "message error";
+
+            return;
+
+        }
+
+
+        // CHECK PASSWORD MATCH
+
+        if (password !== confirmPassword) {
+
+            signupMessage.innerText =
+                "Passwords do not match!";
+
+            signupMessage.className = "message error";
+
+            return;
+
+        }
+
+
+        // CHECK DUPLICATE USERNAME
+
+        let users = getUsers();
+
+        if (Object.prototype.hasOwnProperty.call(users, username)) {
+
+            signupMessage.innerText =
+                "Username already exists! Choose another.";
+
+            signupMessage.className = "message error";
+
+            return;
+
+        }
+
+
+        // SAVE NEW ACCOUNT
+
+        let savedUsers = JSON.parse(
+            localStorage.getItem("authShieldUsers") || "{}"
+        );
+
+        savedUsers[username] = password;
+
+        localStorage.setItem(
+            "authShieldUsers",
+            JSON.stringify(savedUsers)
+        );
+
+
+        // SUCCESS MESSAGE
+
+        signupMessage.innerText =
+            "Account created successfully!";
+
+        signupMessage.className = "message success";
+
+
+        // PROCEED TO OTP VERIFICATION
+
+        setTimeout(function() {
+
+            document.getElementById("newUsername").value = "";
+            document.getElementById("newPassword").value = "";
+            document.getElementById("confirmPassword").value = "";
+
+            sendOTP(username);
+
+        }, 700);
+
+    }
+
+
+    // OTP VERIFICATION
+
+    function verifyOTP() {
+
+        let enteredOTP =
+            document.getElementById("otpInput").value.trim();
+
+        let otpMessage =
+            document.getElementById("otpMessage");
+
+        if (enteredOTP === generatedOTP && generatedOTP !== "") {
+
+            document.getElementById("welcomeUser").innerText =
+                "Welcome, " + currentUser + "!";
+
+            generatedOTP = "";
+
+            showPage("successPage");
+
+        }
+
+        else {
+
+            otpMessage.innerText =
+                "Incorrect OTP! Please try again.";
+
+            otpMessage.className = "message error";
+
+        }
+
+    }
+
+
+    // FORGOT PASSWORD
+
+    function resetPassword() {
+
+        let username =
+            document.getElementById("forgotUsername").value.trim();
+
+        let users = getUsers();
+
+        let resetMessage =
+            document.getElementById("resetMessage");
+
+        if (Object.prototype.hasOwnProperty.call(users, username)) {
+
+            resetMessage.innerText =
+                "Account found! Contact the administrator for password recovery.";
+
+            resetMessage.className = "message success";
+
+        }
+
+        else {
+
+            resetMessage.innerText =
+                "Username not found!";
+
+            resetMessage.className = "message error";
+
+        }
+
+    }
+
+
+    // BACK TO LOGIN / LOGOUT
+
+    function backToLogin() {
+
+        showPage("loginPage");
+
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("captchaInput").value = "";
+
+        document.getElementById("otpInput").value = "";
+
+        document.getElementById("forgotUsername").value = "";
+
+        document.getElementById("loginMessage").innerText = "";
+        document.getElementById("otpMessage").innerText = "";
+        document.getElementById("resetMessage").innerText = "";
+        document.getElementById("signupMessage").innerText = "";
+
+        generatedOTP = "";
+        currentUser = "";
+
+        generateCaptcha();
+
+    }
+
+</script>
+
+</body>
+</html>
